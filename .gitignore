@@ -1,0 +1,12 @@
+# Outputs: contain study identifiers and model predictions -> never commit
+runs/
+*.log
+# Data and weights are distributed separately (see README)
+*.pth
+*.csv
+*.xlsx
+*.npy
+!assets/average_cdf.npy
+__pycache__/
+*.pyc
+.ipynb_checkpoints/

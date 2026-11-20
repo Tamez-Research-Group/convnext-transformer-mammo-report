@@ -13,10 +13,14 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+
+# Load transformers (and torch's CUDA DLLs) before TensorFlow: the reverse order
+# intermittently crashes at start-up on Windows (conflicting cuBLAS builds).
+import transformers  # noqa: F401,E402
 import tensorflow as tf
 from tensorflow import keras
 
-from .data import CONFIGS, VIEW_NAMES, load_features, load_reports, make_split, stack
+from .data import CONFIGS, SPLIT_MODES, VIEW_NAMES, load_features, load_reports, make_split, stack
 from .generate import decode, greedy_generate, tokenize
 from .model import TransformerConfig, build_transformer
 
@@ -104,6 +108,8 @@ def main(argv=None):
     p.add_argument("--config", choices=list(CONFIGS), default="all", help="BI-RADS classes used")
     p.add_argument("--out", required=True)
     p.add_argument("--seed", type=int, default=42, help="seed for weight init / batching")
+    p.add_argument("--split-mode", choices=SPLIT_MODES, default="shared",
+                   help="shared = one hold-out for all configurations; per-config = each configuration split on its own")
     p.add_argument("--split-seed", type=int, default=42, help="seed for the cohort split (42 = paper)")
     p.add_argument("--val-frac", type=float, default=0.15,
                    help="validation fraction for early stopping; 0 = select on the test set (original runs)")
@@ -126,7 +132,7 @@ def main(argv=None):
     feats = load_features(a.features)
     reports = load_reports(a.reports)
     reports = reports[reports["year_ID"].isin(feats)]
-    split = make_split(reports, val_frac=a.val_frac, seed=a.split_seed).restrict(CONFIGS[a.config])
+    split = make_split(reports, CONFIGS[a.config], mode=a.split_mode, val_frac=a.val_frac, seed=a.split_seed)
     split.to_frame().to_csv(out / "split.csv", index=False)
 
     def ds(df, shuffle):

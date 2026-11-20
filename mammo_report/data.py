@@ -60,31 +60,46 @@ class Split:
         return pd.concat(parts, ignore_index=True)[["year_ID", "BIRADS", "split"]]
 
 
+SPLIT_MODES = ("shared", "per-config")
+
+
 def make_split(
     reports: pd.DataFrame,
+    classes: list[int] | None = None,
+    mode: str = "shared",
     n_per_class: int = 356,
     test_frac: float = 0.15,
     val_frac: float = 0.15,
     seed: int = 42,
 ) -> Split:
-    """Balanced 5-class cohort -> stratified hold-out test set -> validation set.
+    """Balanced cohort -> stratified hold-out test set -> validation set.
 
-    The balanced set and the test set reproduce the original experiments exactly
-    (``prepFeatVecs.py``): the smallest class (BI-RADS 1, n=356) is used whole and
-    in file order, the others are subsampled with ``random_state=seed``, and the
-    test set is a stratified 15 % split with the same seed.
+    ``mode="shared"``: one balanced 5-class cohort and ONE hold-out test set for
+    all configurations; a configuration uses the subset of it with its classes.
+    With ``seed=42`` this reproduces the BI-RADS 1-5 experiment exactly (first
+    part of ``prepFeatVecs.py``: the smallest class, BI-RADS 1 with n=356, is
+    used whole and in file order, the others are subsampled).
 
-    Unlike the original runs, early stopping uses a validation set carved out of
-    the training data (``val_frac``), so the test set is never seen during
-    training. ``val_frac=0`` restores the original behaviour of selecting on the
-    test set (only for reproducing the submitted numbers).
+    ``mode="per-config"``: each configuration is balanced and split on its own
+    (``prepare_datasets`` in ``prepFeatVecs.py``, every class subsampled). With
+    ``seed=42`` this reproduces the training sets of the original 1 & 5 and
+    1, 2, 4, 5 experiments exactly.
+
+    Early stopping uses a validation set carved out of the training data
+    (``val_frac``), so the test set is never seen during training.
+    ``val_frac=0`` restores the original behaviour of selecting on the test set.
     """
     from sklearn.model_selection import train_test_split
 
+    if mode not in SPLIT_MODES:
+        raise ValueError(f"mode must be one of {SPLIT_MODES}")
+    classes = classes or sorted(reports["BIRADS"].unique())
+    pool = reports if mode == "shared" else reports[reports["BIRADS"].isin(classes)]
     parts = []
-    for c in sorted(reports["BIRADS"].unique()):
-        d = reports[reports["BIRADS"] == c]
-        parts.append(d if len(d) == n_per_class else d.sample(n=n_per_class, random_state=seed))
+    for c in sorted(pool["BIRADS"].unique()):
+        d = pool[pool["BIRADS"] == c]
+        keep_whole = mode == "shared" and len(d) == n_per_class
+        parts.append(d if keep_whole else d.sample(n=n_per_class, random_state=seed))
     balanced = pd.concat(parts, ignore_index=True)
     train, test = train_test_split(balanced, test_size=test_frac, random_state=seed,
                                    stratify=balanced["BIRADS"])
@@ -95,7 +110,7 @@ def make_split(
         val = test.copy()
     excluded = reports[~reports["year_ID"].isin(balanced["year_ID"])]
     reset = lambda d: d.reset_index(drop=True)  # noqa: E731
-    return Split(reset(train), reset(val), reset(test), reset(excluded))
+    return Split(reset(train), reset(val), reset(test), reset(excluded)).restrict(classes)
 
 
 def stack(df: pd.DataFrame, features: dict[str, np.ndarray], views: list[str] | None = None) -> np.ndarray:

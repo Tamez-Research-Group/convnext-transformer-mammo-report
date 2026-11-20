@@ -24,7 +24,7 @@ import numpy as np
 import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from mammo_report.data import CONFIGS, VIEW_NAMES, load_features, load_reports, make_split, stack  # noqa: E402
+from mammo_report.data import CONFIGS, SPLIT_MODES, VIEW_NAMES, load_features, load_reports, make_split, stack  # noqa: E402
 from mammo_report.evaluate import evaluate, load_predictions  # noqa: E402
 from mammo_report.generate import decode, tokenize  # noqa: E402
 
@@ -47,6 +47,8 @@ def main(argv=None):
     p.add_argument("--reports", required=True)
     p.add_argument("--config", choices=list(CONFIGS), default="all")
     p.add_argument("--out", required=True)
+    p.add_argument("--split-mode", choices=SPLIT_MODES, default="shared")
+    p.add_argument("--split-seed", type=int, default=42)
     p.add_argument("--C-grid", type=float, nargs="+", default=[1e-4, 1e-3, 1e-2, 1e-1, 1.0],
                    help="inverse L2 strengths tried; the best on the validation set is used")
     a = p.parse_args(argv)
@@ -56,7 +58,7 @@ def main(argv=None):
     feats = load_features(a.features)
     reports = load_reports(a.reports)
     reports = reports[reports["year_ID"].isin(feats)]
-    split = make_split(reports).restrict(CONFIGS[a.config])
+    split = make_split(reports, CONFIGS[a.config], mode=a.split_mode, seed=a.split_seed)
     train = pd.concat([split.train, split.val])  # no early stopping needed
     classes = CONFIGS[a.config]
     templates = (reports.groupby("BIRADS")["GeneratedConclusion"].agg(lambda s: s.value_counts().index[0]))

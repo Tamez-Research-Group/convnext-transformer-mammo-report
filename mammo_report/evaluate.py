@@ -85,6 +85,8 @@ def kappa_ci(y_true, y_pred, n_boot: int = 1000, seed: int = 0) -> dict:
     from sklearn.metrics import cohen_kappa_score
 
     y_true, y_pred = np.asarray(y_true), np.asarray(y_pred)
+    if len(np.unique(y_true)) < 2:  # undefined when the reference has a single class
+        return {"kappa": float("nan"), "ci95": [float("nan"), float("nan")]}
     rng = np.random.default_rng(seed)
     boots = []
     for _ in range(n_boot):

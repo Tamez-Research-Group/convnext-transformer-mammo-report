@@ -69,18 +69,20 @@ are reported for that reason.
 # 1) image embeddings (DICOMs are preprocessed on the fly)
 python scripts/extract_features.py --images images.csv --checkpoint trained_model.pth --out features.csv
 
-# 2) train + generate for the three experimental configurations
-for cfg in 1vs5 1245 all; do
-  for seed in 42 1 2; do
-    python -m mammo_report.train --features features.csv --reports reports.xlsx \
-        --config $cfg --seed $seed --out runs/${cfg}_seed$seed
-    python -m mammo_report.evaluate runs/${cfg}_seed$seed/predictions_test.csv --out runs/${cfg}_seed$seed/eval_test
-  done
-done
+# 2) train + evaluate the three configurations (1vs5, 1245, all) under each split design;
+#    finished runs are skipped, so the command can be re-run to resume
+python scripts/run_experiments.py --features features.csv --reports reports.xlsx \
+    --modes shared per-config --split-seeds 42 --model-seeds 42 1 2 --bertscore
+python scripts/run_experiments.py --features features.csv --reports reports.xlsx \
+    --modes per-config --split-seeds 1 2 3 4 --model-seeds 42 --bertscore   # repeated splits
 
-# full-cohort evaluation (studies left out by balancing)
-python -m mammo_report.train ... --config all --predict-excluded --out runs/all_full
-python -m mammo_report.evaluate runs/all_full/predictions_excluded.csv --out runs/all_full/eval_excluded
+# tables (Markdown / LaTeX / CSV) and figures, incl. the full-cohort evaluation
+python scripts/summarize.py --runs runs --out results --ablations runs/ablations_all
+
+# a single run by hand
+python -m mammo_report.train --features features.csv --reports reports.xlsx \
+    --config all --split-mode per-config --split-seed 42 --seed 42 --predict-excluded --out runs/example
+python -m mammo_report.evaluate runs/example/predictions_test.csv --out runs/example/eval_test
 
 # 3) baselines / ablations and computational cost
 python scripts/ablations.py --features features.csv --reports reports.xlsx --config all --out runs/ablations_all
@@ -90,7 +92,10 @@ python scripts/benchmark.py --checkpoint trained_model.pth --transformer runs/al
 
 ### Protocol
 * Balanced cohort: 356 studies per BI-RADS category (the size of the smallest class), from 2014–2019 TecSalud studies with all four views.
-* Hold-out test set: stratified 15 % of the balanced cohort (`random_state=42`), giving 267 studies. The 1 & 5 and 1, 2, 4, 5 configurations use the corresponding subsets of the same hold-out (107 and 214 studies).
+* Split designs (`--split-mode`):
+  * `per-config` (original experiments): each configuration is balanced and split 85/15 on its own. With split seed 42 this reproduces the original training sets exactly. Test sets have 107 / 214 / 267 studies.
+  * `shared`: one 15 % hold-out of the 5-class balanced cohort (267 studies, identical to the original BI-RADS 1–5 test set). The 1 & 5 and 1, 2, 4, 5 configurations use its subsets (107 and 214 studies).
+  * repeated: `per-config` with split seeds 42, 1, 2, 3, 4. This measures how much the metrics depend on which studies end up in the test set.
 * Validation: a stratified 15 % of the training data is used for early stopping (patience 3). The test set is never used for model selection.
 * Transformer: d = 768, FFN 1024, 1 encoder head, 2 decoder heads, 2 + 2 layers, dropout 0.2, learned positional embeddings, BERT WordPiece vocabulary (30,522 tokens), max 40 tokens, Adam with linear warm-up to 1e-4, batch 64, ≤ 80 epochs.
 * Biopsy recommendation = BI-RADS 4 or 5. κ 95 % CIs: 1,000 bootstrap resamples.

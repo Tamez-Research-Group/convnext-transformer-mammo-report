@@ -9,7 +9,13 @@ recommendation. A ConvNeXt-Small network encodes each view, and a Transformer
 encoder-decoder generates the text.
 
 ```
-4 views ─► preprocessing ─► ConvNeXt-S ─► 4 × 768 embeddings ─► Transformer encoder-decoder ─► "BI-RADS category 4. Biopsy is recommended."
+4 DICOM views ──► preprocessing ──► ConvNeXt-S (shared) ──► 4 × 768 view embeddings
+                  (flip, normalise,      1280×1280 input         │  + learned view embedding
+                   0.1 mm, histogram                             ▼
+                   matching to RSNA CDF)               Transformer encoder (2 layers, self-attention across views)
+                                                                 │  keys / values
+                                                                 ▼
+                                    [CLS] ─► Transformer decoder (2 layers, causal self-attn + cross-attn) ─► "Conclusion: BI-RADS category 4. ... Biopsy ... is recommended."
 ```
 
 ## Repository

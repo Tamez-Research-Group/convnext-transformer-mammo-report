@@ -68,7 +68,7 @@ albu_trans = [
 train_pipeline = [
     dict(
         type='LoadImageRSNABreastAux',
-        img_prefix=r'Z:',
+        img_prefix='data/images',  # root folder of the preprocessed TIFFs
         _scope_='mmcls'),
     dict(
         type='Resize',
@@ -111,7 +111,7 @@ train_pipeline = [
 test_pipeline = [
     dict(
         type='LoadImageRSNABreastAux',
-        img_prefix=r'Z:'),
+        img_prefix='data/images'),  # root folder of the preprocessed TIFFs
     dict(
         type='Resize',
         scale=size,
@@ -120,7 +120,7 @@ test_pipeline = [
     dict(type='Pad', size=size, pad_to_square=False, _scope_='mmcls'),
     dict(type='PackClsInputs')
 ]
-Patient_data = 'E:/Training Models/Train_ID.csv' #Load csv with image and patient data
+Patient_data = 'data/Train_ID.csv'  # CSV with image paths and patient data (set to your own file)
 train_dataloader = dict(
     pin_memory=False,
     persistent_workers=True,
@@ -238,6 +238,6 @@ visualizer = dict(
 log_level = 'INFO'
 load_from = '' #Checkpoint Folder
 resume = False
-work_dir = r'E:\Training Models\work_dir' #Directory to save checkpoints
+work_dir = 'work_dir'  # directory for checkpoints and logs
 fp16 = dict(loss_scale=256.0, velocity_accum_type='half', accum_type='half')
 launcher = 'none'

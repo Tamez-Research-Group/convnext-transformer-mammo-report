@@ -72,7 +72,7 @@ Run any script with `--help` for all options.
 
 ## License
 
-*TODO.* `convnext_training/` includes MIT-licensed code from ShuzhiLiu/RSNABreast2ndPlace
+[MIT](LICENSE). `convnext_training/` includes MIT-licensed code from ShuzhiLiu/RSNABreast2ndPlace
 (see `convnext_training/LICENSE-RSNABreast2ndPlace`).
 
 ## Acknowledgements

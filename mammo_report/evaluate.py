@@ -67,7 +67,6 @@ def text_metrics(refs: list[str], preds: list[str], bertscore: bool = True) -> d
     for r, p in zip(refs, preds):
         agg.add_scores(scorer.score(r, p))
     rl = agg.aggregate()["rougeL"]
-    # NB: the submitted manuscript reported the *low* bootstrap bound (0.765) as ROUGE-L.
     out["ROUGE-L"] = rl.mid.fmeasure
     out["ROUGE-L_ci95"] = [rl.low.fmeasure, rl.high.fmeasure]
     out["METEOR"] = float(np.mean([meteor_score([word_tokenize(r)], word_tokenize(p)) for r, p in zip(refs, preds)]))

@@ -112,7 +112,7 @@ def main(argv=None):
                    help="shared = one hold-out for all configurations; per-config = each configuration split on its own")
     p.add_argument("--split-seed", type=int, default=42, help="seed for the cohort split (42 = paper)")
     p.add_argument("--val-frac", type=float, default=0.15,
-                   help="validation fraction for early stopping; 0 = select on the test set (original runs)")
+                   help="fraction of the training set used for early stopping")
     p.add_argument("--epochs", type=int, default=80)
     p.add_argument("--batch-size", type=int, default=64)
     p.add_argument("--lr", type=float, default=1e-4)

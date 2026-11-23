@@ -6,7 +6,7 @@ grid can be resumed.
 
 Example (everything reported in the paper):
     python scripts/run_experiments.py --features weights2.csv --reports reports.xlsx \
-        --modes shared per-config --split-seeds 42 --model-seeds 42 1 2
+        --modes per-config --split-seeds 42 --model-seeds 42 1 2   # paper (add "shared" for the shared hold-out)
     python scripts/run_experiments.py ... --modes per-config --split-seeds 1 2 3 4 --model-seeds 42
 """
 from __future__ import annotations
@@ -25,7 +25,7 @@ def main(argv=None):
     p.add_argument("--features", required=True)
     p.add_argument("--reports", required=True)
     p.add_argument("--runs", default=str(ROOT / "runs"))
-    p.add_argument("--modes", nargs="+", default=["shared", "per-config"])
+    p.add_argument("--modes", nargs="+", default=["per-config"])
     p.add_argument("--configs", nargs="+", default=["1vs5", "1245", "all"])
     p.add_argument("--split-seeds", nargs="+", type=int, default=[42])
     p.add_argument("--model-seeds", nargs="+", type=int, default=[42, 1, 2])

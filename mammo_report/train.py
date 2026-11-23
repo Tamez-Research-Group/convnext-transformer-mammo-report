@@ -108,7 +108,7 @@ def main(argv=None):
     p.add_argument("--config", choices=list(CONFIGS), default="all", help="BI-RADS classes used")
     p.add_argument("--out", required=True)
     p.add_argument("--seed", type=int, default=42, help="seed for weight init / batching")
-    p.add_argument("--split-mode", choices=SPLIT_MODES, default="shared",
+    p.add_argument("--split-mode", choices=SPLIT_MODES, default="per-config",
                    help="shared = one hold-out for all configurations; per-config = each configuration split on its own")
     p.add_argument("--split-seed", type=int, default=42, help="seed for the cohort split (42 = paper)")
     p.add_argument("--val-frac", type=float, default=0.15,

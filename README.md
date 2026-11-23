@@ -23,7 +23,7 @@ encoder-decoder generates the text.
 | Path | Content |
 |---|---|
 | `mammo_report/` | Preprocessing, ConvNeXt encoder, data split, Transformer, training, generation, evaluation |
-| `scripts/` | Feature extraction, experiments, summary tables/figures, baselines, compute benchmark |
+| `scripts/` | Feature extraction, prediction, experiments, summary tables/figures, baselines, compute benchmark |
 | `convnext_training/` | ConvNeXt-S training (mmcls), adapted from the [RSNA 2nd-place solution](https://github.com/ShuzhiLiu/RSNABreast2ndPlace) |
 | `assets/average_cdf.npy` | Reference CDF for histogram matching |
 
@@ -34,33 +34,51 @@ pip install -r requirements.txt
 ```
 Training the ConvNeXt encoder needs the separate stack in `convnext_training/requirements-mmcls.txt`.
 
-## Data and weights
+## Pretrained weights
 
-The TecSalud mammograms and reports are private patient data and are not distributed.
-
-| File | Description | Availability |
-|---|---|---|
-| `trained_model.pth` | ConvNeXt-S checkpoint | *TODO: link* |
-| `features.csv` | One row per image: `year, patient_id, image_id, laterality, view, path, Column1..Column768` | on request |
-| `reports.xlsx` | One row per study: `year_ID, BIRADS, GeneratedConclusion` | on request |
-
-## Usage
+The trained models are on Hugging Face:
+[lalodeavilaarm/convnext-transformer-mammo-report](https://huggingface.co/lalodeavilaarm/convnext-transformer-mammo-report).
 
 ```bash
-# 1. Image embeddings (DICOM or preprocessed TIFF)
-python scripts/extract_features.py --images images.csv --checkpoint trained_model.pth --out features.csv
+huggingface-cli download lalodeavilaarm/convnext-transformer-mammo-report --local-dir weights
+```
 
-# 2. Train and evaluate one model
+| Path | Content |
+|---|---|
+| `convnext/trained_model.pth` | ConvNeXt-S image encoder |
+| `transformer/all/` | Conclusion generator, BI-RADS 1–5 (general use) |
+| `transformer/1245/`, `transformer/1vs5/` | Generators for the other two configurations of the paper |
+
+## Generate conclusions for new studies
+
+```bash
+# images.csv: year, patient_id, image_id, laterality (L/R), view (CC/MLO), path (DICOM)
+python scripts/extract_features.py --images images.csv --checkpoint weights/convnext/trained_model.pth --out features.csv
+python scripts/predict.py --features features.csv --transformer weights/transformer/all --out conclusions.csv
+```
+
+Each study needs the four views (LCC, LMLO, RCC, RMLO). The output has the generated
+conclusion, its BI-RADS category and the model's probabilities for BI-RADS 1–5.
+
+## Reproduce the paper
+
+The TecSalud mammograms and reports are private patient data and are not distributed.
+Training needs `features.csv` (one row per image: `year, patient_id, image_id, laterality, view, path, Column1..Column768`)
+and `reports.xlsx` (one row per study: `year_ID, BIRADS, GeneratedConclusion`).
+
+```bash
+# 1. Train and evaluate one model
 python -m mammo_report.train --features features.csv --reports reports.xlsx --config all --out runs/all
 python -m mammo_report.evaluate runs/all/predictions_test.csv --out runs/all/eval
 
-# 3. All experiments, tables and figures
+# 2. All experiments (3 configurations x 3 seeds), tables and figures
 python scripts/run_experiments.py --features features.csv --reports reports.xlsx --bertscore
 python scripts/summarize.py --runs runs --out results
+python scripts/paper_figures.py --runs runs --out paper_figures
 
-# 4. Baselines and computational cost
+# 3. Baselines and computational cost
 python scripts/ablations.py --features features.csv --reports reports.xlsx --config all --out runs/ablations
-python scripts/benchmark.py --checkpoint trained_model.pth --transformer runs/all --out benchmark.json
+python scripts/benchmark.py --checkpoint weights/convnext/trained_model.pth --transformer weights/transformer/all --out benchmark.json
 ```
 
 `--config` selects the BI-RADS categories: `1vs5`, `1245` or `all` (1–5).

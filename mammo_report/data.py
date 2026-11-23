@@ -66,7 +66,7 @@ SPLIT_MODES = ("shared", "per-config")
 def make_split(
     reports: pd.DataFrame,
     classes: list[int] | None = None,
-    mode: str = "shared",
+    mode: str = "per-config",
     n_per_class: int = 356,
     test_frac: float = 0.15,
     val_frac: float = 0.15,

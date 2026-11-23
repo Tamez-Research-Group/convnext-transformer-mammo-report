@@ -47,7 +47,7 @@ def main(argv=None):
     p.add_argument("--reports", required=True)
     p.add_argument("--config", choices=list(CONFIGS), default="all")
     p.add_argument("--out", required=True)
-    p.add_argument("--split-mode", choices=SPLIT_MODES, default="shared")
+    p.add_argument("--split-mode", choices=SPLIT_MODES, default="per-config")
     p.add_argument("--split-seed", type=int, default=42)
     p.add_argument("--C-grid", type=float, nargs="+", default=[1e-4, 1e-3, 1e-2, 1e-1, 1.0],
                    help="inverse L2 strengths tried; the best on the validation set is used")

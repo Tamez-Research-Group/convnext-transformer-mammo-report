@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import re
+import weakref
 
 import numpy as np
 import tensorflow as tf
@@ -41,6 +42,21 @@ def category_token_ids() -> dict[int, int]:
     return {c: tok.convert_tokens_to_ids(str(c)) for c in range(1, 6)}
 
 
+_STEP_CACHE: "weakref.WeakKeyDictionary" = weakref.WeakKeyDictionary()
+
+
+def _compiled_step(model: tf.keras.Model):
+    """One decoder forward pass as a tf.function, compiled once per model and reused across calls."""
+    step = _STEP_CACHE.get(model)
+    if step is None:
+        @tf.function(reduce_retracing=True)
+        def step(x, ids):
+            return model({"visual_context": x, "dec_input_ids": ids}, training=False)
+
+        _STEP_CACHE[model] = step
+    return step
+
+
 def greedy_generate(model: tf.keras.Model, features: np.ndarray, max_len: int = 40, batch_size: int = 64):
     """Generate conclusions from view embeddings.
 
@@ -53,10 +69,7 @@ def greedy_generate(model: tf.keras.Model, features: np.ndarray, max_len: int = 
     tok = get_tokenizer()
     category_id = tok.convert_tokens_to_ids("category")
     digit_ids = np.array(list(category_token_ids().values()))
-
-    @tf.function(reduce_retracing=True)
-    def step(x, ids):
-        return model({"visual_context": x, "dec_input_ids": ids}, training=False)
+    step = _compiled_step(model)
 
     all_ids, all_cat = [], []
     for start in range(0, len(features), batch_size):

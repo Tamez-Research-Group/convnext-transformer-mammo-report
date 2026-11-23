@@ -1,0 +1,51 @@
+cff-version: 1.2.0
+message: "If you use this software or the trained models, please cite it as below."
+title: "ConvNeXt-Transformer conclusion generation from mammography"
+type: software
+version: 1.0.0
+license: MIT
+repository-code: "https://github.com/Tamez-Research-Group/convnext-transformer-mammo-report"
+url: "https://huggingface.co/lalodeavilaarm/convnext-transformer-mammo-report"
+abstract: >-
+  Code for "A ConvNeXt-Transformer Approach for Automated Conclusion Generation
+  from Mammography". From the four screening views of a study, a ConvNeXt-Small
+  encoder and a Transformer encoder-decoder generate the report conclusion:
+  the BI-RADS category and its follow-up or biopsy recommendation.
+keywords:
+  - mammography
+  - breast cancer
+  - BI-RADS
+  - radiology report generation
+  - ConvNeXt
+  - Transformer
+authors:
+  - family-names: Bosques-Palomo
+    given-names: Beatriz
+    orcid: "https://orcid.org/0009-0001-1052-3142"
+  - family-names: de Avila-Armenta
+    given-names: Eduardo
+    orcid: "https://orcid.org/0000-0003-3461-7722"
+  - family-names: Fumagal-González
+    given-names: Gerardo A.
+    orcid: "https://orcid.org/0009-0008-2041-8056"
+  - family-names: Monsivais-Molina
+    given-names: Mario A.
+    orcid: "https://orcid.org/0009-0007-1325-9205"
+  - family-names: Garza-Abdala
+    given-names: Jorge A.
+    orcid: "https://orcid.org/0000-0003-1952-5977"
+  - family-names: Hussain
+    given-names: Sadam
+    orcid: "https://orcid.org/0000-0002-3453-0785"
+  - family-names: Vela-Jarquin
+    given-names: Daniel
+    orcid: "https://orcid.org/0000-0001-5624-8791"
+  - family-names: Cardona-Huerta
+    given-names: Servando
+    orcid: "https://orcid.org/0000-0001-8595-4177"
+  - family-names: Avendaño-Avalos
+    given-names: Daly B.
+    orcid: "https://orcid.org/0000-0002-8433-7211"
+  - family-names: Tamez-Peña
+    given-names: Jose G.
+    orcid: "https://orcid.org/0000-0003-1361-5162"

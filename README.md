@@ -1,5 +1,8 @@
 # ConvNeXt-Transformer conclusion generation from mammography
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24484153.svg)](https://doi.org/10.5281/zenodo.24484153)
+[![Weights](https://img.shields.io/badge/%F0%9F%A4%97%20weights-Hugging%20Face-yellow)](https://huggingface.co/lalodeavilaarm/convnext-transformer-mammo-report)
+
 Official code for *"A ConvNeXt-Transformer Approach for Automated Conclusion Generation from
 Mammography"* (Bosques-Palomo, de Avila-Armenta, *et al.*, IEEE JBHI).
 
@@ -86,7 +89,9 @@ Run any script with `--help` for all options.
 
 ## Citation
 
-*To be added on publication.*
+Paper citation to be added on publication. To cite the software, use the
+"Cite this repository" button (from `CITATION.cff`) or the Zenodo DOI
+[10.5281/zenodo.24484153](https://doi.org/10.5281/zenodo.24484153).
 
 ## License
 
